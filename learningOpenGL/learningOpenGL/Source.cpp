@@ -10,9 +10,9 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 int main()
 {
 	glfwInit(); //initialize GLFW
-	// Specify you will be using OpenGL 3.3
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	// Specify you will be using OpenGL 4.4
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 	// Specify you only want to use core OpenGL and throw error at legacy function use
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	// specify user should not be able to resize window
@@ -21,7 +21,7 @@ int main()
 	/// CREATE A WINDOW
 	// Create window of 800x600 pixels titled LearnOpenGL
 	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
-	
+
 	// If window wasn't properly created, then terminate
 	if (window == nullptr)
 	{
