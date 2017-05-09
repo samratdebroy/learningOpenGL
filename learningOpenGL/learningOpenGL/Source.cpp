@@ -171,9 +171,10 @@ int main()
 	// CREATE TRIANGLE AND RENDER
 	// Create a triangle with normalized (-1 to 1) vertex values
 	GLfloat vertices[] = {
-		-0.5f, -0.5f, 0.0f,
-		0.5f, -0.5f, 0.0f,
-		0.0f,  0.5f, 0.0f
+		// positions		//colors
+		0.5f, -0.5f, 0.0f,	1.0f, 0.0f, 0.0f,	// Bottom right
+		-0.5f, -0.5f, 0.0f,	0.0f, 1.0f, 0.0f,	// Bottom left
+		0.0f,  0.5f, 0.0f,	0.0f, 0.0f, 1.0f	// Top
 	};
 
 	// create vertex buffer objects
@@ -197,9 +198,14 @@ int main()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	// Set vertice attributes
-	// first vertex position / size of vertex / type of vertex components / if you want to normalize / stride=space b/w vertices/ ??
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0); // enables the vertex attributes
+	// Position attribute
+	// First vertex position / size of vertex / type of vertex components / if you want to normalize / stride=space b/w vertices/ offset of first component of attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0); // enables the vertex position attribute
+
+	// Color attribute
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1); // enables the vertex color attribute
 
 
 	// unbind the VAO and VBO
@@ -220,24 +226,18 @@ int main()
 
 		// Making sure to activate the Shader
 		glUseProgram(shaderProgram); // first triangle
-
-		// Update the uniform color
-		GLfloat timeValue = glfwGetTime();
-		GLfloat greenValue = (sin(timeValue) / 2 ) + 0.5;
-		GLint vertexColorLocation = glGetUniformLocation(shaderProgram, "ourColor");
-		glUniform4f(vertexColorLocation, 0.0f, greenValue, 0.0f, 1.0f);
-
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3); // 2nd: starting index, 3rd: num of vertices
 		glBindVertexArray(0);
-
-
 
 		// Will swap the pointers to the double buffers
 		// (where one buffer is displayed and the other one has the next frame being drawn on it)
 		glfwSwapBuffers(window);
 	}
-
+	// Properly de-allocate all resources once they've outlived their purpose
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	// Terminate GLFW and clear any resources allocated by it
 	glfwTerminate();
 	return 0;
 
