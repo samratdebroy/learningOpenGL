@@ -1,12 +1,16 @@
 //GLEW must be defined before GLFW
 #define GLEW_STATIC
 #include <GL/glew.h>
+//GLFW
 #include <GLFW/glfw3.h>
-#include <iostream>
-#include <fstream>
+//OTHERS
+#include "Shader.h"
 
 // Prototype
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+
+// Window dimensions
+const GLuint WIDTH = 800, HEIGHT = 600;
 
 int main()
 {
@@ -21,7 +25,7 @@ int main()
 
 	/// CREATE A WINDOW
 	// Create window of 800x600 pixels titled LearnOpenGL
-	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
 
 	// If window wasn't properly created, then terminate
 	if (window == nullptr)
@@ -51,122 +55,8 @@ int main()
 	// Set origin to lower-left corner of window and define size.
 	glViewport(0, 0, width, height);
 
-	//////// VERTEX SHADER ////////
-
-	// Get shader source code from file and store shader in C-string
-	std::ifstream vertexShaderFile ("triangleVertexShader.txt",std::ifstream::in | std::ifstream::binary);
-
-	GLchar* vertexShaderSource;
-	if(vertexShaderFile)
-	{
-		// Get length of file:
-		vertexShaderFile.seekg(0, vertexShaderFile.end); // set position to last char
-		int shaderFileLength = vertexShaderFile.tellg();	// get character position as length
-		vertexShaderFile.seekg(0, vertexShaderFile.beg); //set position back to beginning
-		
-		vertexShaderSource = new GLchar[shaderFileLength + 1];
-		vertexShaderSource[shaderFileLength] = '\0';
-
-		// Get all characters from the shader file and put it in the C-string
-		vertexShaderFile.read(vertexShaderSource, shaderFileLength);
-
-		vertexShaderFile.close(); // close the file
-	}else
-	{
-		std::cout << "File could not be found" << std::endl;
-	}
-
-
-	// store the handle to the vertex shader in a unsined int
-	GLuint vertexShader;
-	vertexShader = glCreateShader(GL_VERTEX_SHADER);
-	// Set shader code of Shader object according to new source
-	// the second param represents the number of elements in the string array
-	glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-	glCompileShader(vertexShader);
-	//delete vertexShaderSource; //clear memory
-
-	//ERROR CHECK
-	// Check if the compilation was successful
-	GLint success;
-	GLchar infoLog[512];
-	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
-
-	// If it wasn't succesful then display error message
-	if (!success)
-	{
-		glGetShaderInfoLog(vertexShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	//////////// FRAGMENT SHADER ///////
-
-	// Get shader source code from file and store shader in C-string
-	std::ifstream fragmentShaderFile("triangleFragmentShader.txt", std::ifstream::in | std::ifstream::binary);
-
-	
-
-	GLchar* fragmentShaderSource;
-	if (fragmentShaderFile)
-	{
-		// Get length of file:
-		fragmentShaderFile.seekg(0, fragmentShaderFile.end); // set position to last char
-		int shaderFileLength = fragmentShaderFile.tellg();	// get character position as length
-		fragmentShaderFile.seekg(0, fragmentShaderFile.beg); //set position back to beginning
-
-		fragmentShaderSource = new GLchar[shaderFileLength + 1];
-		fragmentShaderSource[shaderFileLength] = '\0'; // null terminate
-
-		// Get all characters from the shader file and put it in the C-string
-		fragmentShaderFile.read(fragmentShaderSource, shaderFileLength);
-
-		fragmentShaderFile.close();
-	}
-	else
-	{
-		std::cout << "File could not be found" << std::endl;
-	}
-
-
-	// store the handle to the fragment shader in a unsined int
-	GLuint fragmentShader;
-	fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-	// Set shader code of Shader object according to new source
-	// the second param represents the number of elements in the string array
-	glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-	glCompileShader(fragmentShader);
-	//delete fragmentShaderSource; //clear memory
-
-	//ERROR CHECK
-	// Check if the compilation was successful
-	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success);
-
-	// If it wasn't succesful then display error message
-	if (!success)
-	{
-		glGetShaderInfoLog(fragmentShader, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" << infoLog << std::endl;
-	}
-
-	/////// CREATE SHADER PROGRAM AND BIND SHADERS /////
-	GLuint shaderProgram;
-	shaderProgram = glCreateProgram(); // get ID of program
-
-	// Link the previously compiled shaders into the program
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram); // link all attached shaders to a final shader
-
-	// Check if linking worked
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		std::cout << "ERROR::SHADER::VERTEX&FRAGMENT::LINKING_FAILED\n" << infoLog << std::endl;
-	}
-
-	// delete unused shaders since they are inside  the program now
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
+	// Build and Compile our shader program
+	Shader ourShader("shaders/default.vert", "shaders/default.frag");
 
 	// CREATE TRIANGLE AND RENDER
 	// Create a triangle with normalized (-1 to 1) vertex values
@@ -207,9 +97,8 @@ int main()
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1); // enables the vertex color attribute
 
-
 	// unbind the VAO and VBO
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	// glBindBuffer(GL_ARRAY_BUFFER, 0); //They don't unbind the VBO in the tutorial for some reason
 	glBindVertexArray(0);
 
 
@@ -225,7 +114,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT);
 
 		// Making sure to activate the Shader
-		glUseProgram(shaderProgram); // first triangle
+		ourShader.Use(); 
 		glBindVertexArray(VAO);
 		glDrawArrays(GL_TRIANGLES, 0, 3); // 2nd: starting index, 3rd: num of vertices
 		glBindVertexArray(0);

@@ -20,11 +20,16 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="triangleVertexShader.txt">
+    <Text Include="shaders\default.vert">
       <Filter>Resource Files</Filter>
     </Text>
-    <Text Include="triangleFragmentShader.txt">
+    <Text Include="shaders\default.frag">
       <Filter>Resource Files</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
