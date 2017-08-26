@@ -12,7 +12,7 @@ class Shader //Whole class in header file for learning/portability reasons
 {
 public:
 	// The program ID
-	GLuint Program;
+	unsigned int ID;
 	// Constructor read and builds shader from file paths
 	Shader(const GLchar* vertexPath, const GLchar* fragmentPath)
 	{
@@ -85,15 +85,15 @@ public:
 		}
 
 		// Create and Set-up Shader Program
-		this->Program = glCreateProgram(); // Create program object and return reference
-		glAttachShader(this->Program, vertex);
-		glAttachShader(this->Program, fragment);
-		glLinkProgram(this->Program); // Links all attached shaders into one object and matches outputs and inputs of different shaders
+		ID = glCreateProgram(); // Create program object and return reference
+		glAttachShader(ID, vertex);
+		glAttachShader(ID, fragment);
+		glLinkProgram(ID); // Links all attached shaders into one object and matches outputs and inputs of different shaders
 		// Print linking errors is any
-		glGetProgramiv(this->Program, GL_LINK_STATUS, &success);
+		glGetProgramiv(ID, GL_LINK_STATUS, &success);
 		if (!success)
 		{
-			glGetShaderInfoLog(this->Program, 512, NULL, infoLog); //returns info log of Program
+			glGetShaderInfoLog(ID, 512, NULL, infoLog); //returns info log of Program
 			std::cout << "ERROR::SHADER::PROGRAM::LINKING_FAILED\n" << infoLog << std::endl;
 		}
 
@@ -103,7 +103,7 @@ public:
 	}
 
 	// Use the program
-	void Use() { glUseProgram(this->Program); }
+	void Use() { glUseProgram(ID); }
 };
 
 #endif

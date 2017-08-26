@@ -1,12 +1,15 @@
 #version 440 core
 
-layout (location = 0) in vec3 position;
-layout (location = 1) in vec3 color;
+layout (location = 0) in vec3 aPos;
+layout (location = 1) in vec3 aColor;
+layout (location = 2) in vec2 aTexCoord;
 
 out vec3 ourColor; // Specify a color output to the fragment shader
+out vec2 TexCoord; // Specify a texture output to the fragment shader
 
 void main()
 {
-	gl_Position = vec4(position, 1.0);
-	ourColor  = color; // Set ourColour to the input color we get from the vertex data
+	gl_Position = vec4(aPos, 1.0);
+	ourColor  = aColor; // Set ourColour to the input color we get from the vertex data
+	TexCoord = aTexCoord;
 }
