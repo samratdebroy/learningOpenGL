@@ -108,10 +108,11 @@ int main()
 
 	//////////////////// TEXTURES //////////////////
 
-	// Create Texture ID
-	unsigned int texture;
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
+	// Load and Create the Texture IDs
+	// ------------------- texture 1
+	unsigned int texture1, texture2;
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1);
 	// set the texture wrapping/filtering options (on the currently bound texture object)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // texture repeated on s & t axes
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
@@ -119,6 +120,7 @@ int main()
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // or when magnifying
 	// Import the texture from a file
 	int tex_width, tex_height, nrChannels;
+	stbi_set_flip_vertically_on_load(true); // vertically flip the image so that it is properly aligned
 	unsigned char *data = stbi_load("textures/container.jpg", &tex_width, &tex_height, &nrChannels, 0); // load from file
 	if(data)
 	{
@@ -131,9 +133,34 @@ int main()
 	}
 	stbi_image_free(data); // Free image memory
 
-	// unbind the VAO and VBO
-	// glBindBuffer(GL_ARRAY_BUFFER, 0); //They don't unbind the VBO in the tutorial for some reason
-	glBindVertexArray(0);
+	// ------------------- texture 2
+	glGenTextures(1, &texture2);
+	glBindTexture(GL_TEXTURE_2D, texture2);
+	// set the texture wrapping/filtering options (on the currently bound texture object)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // texture repeated on s & t axes
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // linear filtering when minifying
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // or when magnifying
+	// Import the texture from a file
+	data = stbi_load("textures/awesomeface.png", &tex_width, &tex_height, &nrChannels, 0); // load from file
+	if (data)
+	{
+		// note that the awesomeface.png has transparency and thus an alpha channel, so make sure to tell OpenGL the data type is of GL_RGBA
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_width, tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data); // Gen the texture
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture 2 " << std::endl;
+	}
+	stbi_image_free(data); // Free image memory
+
+	// tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
+	ourShader.Use(); // remember to activate/use the shader before setting uniforms
+	// either set it manually
+	glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
+	// or set it via the texture class
+	ourShader.setInt("texture2", 1);
 
 
 	// Loop that will run every frame until something causes termination
@@ -147,14 +174,16 @@ int main()
 		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		// Bind Texture
-		glBindTexture(GL_TEXTURE_2D, texture);
+		// Bind textures on corresponding texture units
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texture1);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, texture2);
 
 		// Making sure to activate the Shader
 		ourShader.Use(); 
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-		glBindVertexArray(0);
 
 		// Will swap the pointers to the double buffers
 		// (where one buffer is displayed and the other one has the next frame being drawn on it)
