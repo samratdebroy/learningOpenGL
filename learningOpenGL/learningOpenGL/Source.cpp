@@ -6,7 +6,6 @@
 //OTHERS
 #include "stb_image.h"
 #include "Shader.h"
-#include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -111,6 +110,20 @@ int main()
 		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
 	};
 
+	// World-Space locations of 10 cubes
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
 	// create vertex buffer objects,vertex array objects
 	GLuint VBO, VAO;
 	glGenVertexArrays(1, &VAO);
@@ -204,10 +217,6 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
-		// Create a local-to-world (model) matrix
-		glm::mat4 model = glm::mat4(1.0f); //init as identity matrix
-		model = glm::rotate(model,(float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f)); //rotate with time
-
 		// Create a world-to-camera (view) matrix
 		glm::mat4 view = glm::mat4(1.0f);
 		// note we're translating the scene to the reverse direction of where we want to move
@@ -221,15 +230,24 @@ int main()
 		ourShader.Use(); 
 		
 		// Add coordinate-system transformation uniforms
-		unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		unsigned int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		ourShader.setMat4("view", view);
+		ourShader.setMat4("projection", projection); // projection matrix actually rarely changes, can only set once outside loop
 
 		glBindVertexArray(VAO);
-		glDrawArrays(GL_TRIANGLES, 0,36);
+
+		// Create ten translated cubes
+		for(unsigned int i =0; i < 10; i++)
+		{
+			// Create a local-to-world (model) matrix
+			glm::mat4 model = glm::mat4(1.0f);//init as identity matrix
+			model = glm::translate(model, cubePositions[i]); 
+			float angle = 10.0f + 20.0f * i; //add a slight rotation to each cube
+			model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f)); //rotate with time	
+			ourShader.setMat4("model", model); // Set the model uniform
+
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
+
 
 		// Will swap the pointers to the double buffers
 		// (where one buffer is displayed and the other one has the next frame being drawn on it)
