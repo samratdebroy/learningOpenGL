@@ -6,6 +6,9 @@
 //OTHERS
 #include "stb_image.h"
 #include "Shader.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 // Prototype
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
@@ -62,11 +65,11 @@ int main()
 	// CREATE RECTANGLE AND RENDER
 	// Create a rectangle with normalized (-1 to 1) vertex values
 	float vertices[] = {
-		// positions          // colors           // texture coords
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // top right
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // bottom right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // bottom left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // top left 
+		// positions           // texture coords
+		0.5f,  0.5f, 0.0f,   1.0f, 1.0f,   // top right
+		0.5f, -0.5f, 0.0f,   1.0f, 0.0f,   // bottom right
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f,   // bottom left
+		-0.5f,  0.5f, 0.0f,   0.0f, 1.0f    // top left 
 	};
 	unsigned int indices[] = {
 		0, 1, 3, // first triangle
@@ -84,8 +87,6 @@ int main()
 
 	/// Bind VBO (copy vertices array into VBO)
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	// copies user defined data stored in vertices into the color buffer
-	// GL_STATIC DRAW means we prolly won't change the data much
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	/// Bind the Element Buffer Object (copy index array into EBO)
@@ -97,14 +98,11 @@ int main()
 
 	//Position attribute
 	// First vertex position / size of vertex / type of vertex components / if you want to normalize / stride=space b/w vertices/ offset of first component of attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0); // enables the vertex position attribute
-	// Color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1); // enables the vertex color attribute
 	// Texture attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2); // enables the vertex texture attribute
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(1); // enables the vertex texture attribute
 
 	//////////////////// TEXTURES //////////////////
 
@@ -157,11 +155,8 @@ int main()
 
 	// tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
 	ourShader.Use(); // remember to activate/use the shader before setting uniforms
-	// either set it manually
-	glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
-	// or set it via the texture class
+	ourShader.setInt("texture1", 0);
 	ourShader.setInt("texture2", 1);
-
 
 	// Loop that will run every frame until something causes termination
 	while(!glfwWindowShouldClose(window))
@@ -180,8 +175,17 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
+		// Create a transformation matrix
+		glm::mat4 transform = glm::mat4(1.0f); //init as identity matrix
+		transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.5f));
+		transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f)); // rotate with time around z-axis
 		// Making sure to activate the Shader
 		ourShader.Use(); 
+		
+		// Add transformation uniform
+		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
+		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
