@@ -175,16 +175,29 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
-		// Create a transformation matrix
-		glm::mat4 transform = glm::mat4(1.0f); //init as identity matrix
-		transform = glm::translate(transform, glm::vec3(0.5f, -0.5f, 0.5f));
-		transform = glm::rotate(transform, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f)); // rotate with time around z-axis
+		// Create a local-to-world (model) matrix
+		glm::mat4 model = glm::mat4(1.0f); //init as identity matrix
+		model = glm::rotate(model,glm::radians(-55.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //rotate on x-axis so it's laying
+
+		// Create a world-to-camera (view) matrix
+		glm::mat4 view = glm::mat4(1.0f);
+		// note we're translating the scene to the reverse direction of where we want to move
+		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+
+		// Create a camera-to-screen (projection) matrix with perspective projection
+		glm::mat4 projection = glm::mat4(1.0f);
+		projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+
 		// Making sure to activate the Shader
 		ourShader.Use(); 
 		
-		// Add transformation uniform
-		unsigned int transformLoc = glGetUniformLocation(ourShader.ID, "transform");
-		glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+		// Add coordinate-system transformation uniforms
+		unsigned int modelLoc = glGetUniformLocation(ourShader.ID, "model");
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		unsigned int viewLoc = glGetUniformLocation(ourShader.ID, "view");
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		unsigned int projectionLoc = glGetUniformLocation(ourShader.ID, "projection");
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
