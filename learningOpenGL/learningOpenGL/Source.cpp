@@ -11,9 +11,19 @@
 
 // Prototype
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void processInput(GLFWwindow *window);
 
 // Window dimensions
 const GLuint WIDTH = 800, HEIGHT = 600;
+
+// Camera Settings
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+// Timing Variables
+float deltaTime = 0.0f; // Time b/w last frame and current frame
+float lastFrame = 0.0f; 
 
 int main()
 {
@@ -203,8 +213,13 @@ int main()
 	// Loop that will run every frame until something causes termination
 	while(!glfwWindowShouldClose(window))
 	{
-		// Checks if any inputs have been triggered (eg. mouse or keyboard click)
-		glfwPollEvents();
+		// Time logic
+		float currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		// Handle inputs
+		processInput(window);
 
 		// Rendering Commands go here
 		// Clear Colorbuffer  and set background colour to clear to
@@ -219,11 +234,7 @@ int main()
 
 		// Create a world-to-camera (view) matrix using the camera position, target pos and world up-vector
 		glm::mat4 view = glm::mat4(1.0f);
-		// set up parameters to have camera rotate around y-axis
-		float radius = 10.0f;
-		float camX = sin(glfwGetTime()) * radius;
-		float camZ = cos(glfwGetTime()) * radius;
-		view = glm::lookAt(glm::vec3(camX,0,camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,1.0f,0.0f));
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		// Create a camera-to-screen (projection) matrix with perspective projection
 		glm::mat4 projection = glm::mat4(1.0f);
@@ -253,8 +264,9 @@ int main()
 
 
 		// Will swap the pointers to the double buffers
-		// (where one buffer is displayed and the other one has the next frame being drawn on it)
+		// Checks if any I/O events have been triggered (eg. mouse or keyboard click)
 		glfwSwapBuffers(window);
+		glfwPollEvents();
 	}
 	// Properly de-allocate all resources once they've outlived their purpose
 	glDeleteVertexArrays(1, &VAO);
@@ -264,6 +276,25 @@ int main()
 	glfwTerminate();
 	return 0;
 
+}
+
+// Process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
+void processInput(GLFWwindow *window)
+{
+	// Exits the application if escape was pressed
+	if (glfwGetKey(window,GLFW_KEY_ESCAPE) == GLFW_PRESS)
+		glfwSetWindowShouldClose(window, GL_TRUE);
+
+	// Camera movement keys
+	float cameraSpeed = 2.5 * deltaTime;
+	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		cameraPos += cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		cameraPos -= cameraSpeed * cameraFront;
+	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront,cameraUp)); // cross product creates right vector
+	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
 }
 
 /**
@@ -276,6 +307,5 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 {
 	// When a user presses the escape key, we set the WindowShouldClose property to true, 
 	// closing the application
-	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
-		glfwSetWindowShouldClose(window, GL_TRUE);
+	
 }
