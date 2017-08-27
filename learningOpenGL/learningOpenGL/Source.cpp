@@ -217,10 +217,13 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
-		// Create a world-to-camera (view) matrix
+		// Create a world-to-camera (view) matrix using the camera position, target pos and world up-vector
 		glm::mat4 view = glm::mat4(1.0f);
-		// note we're translating the scene to the reverse direction of where we want to move
-		view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+		// set up parameters to have camera rotate around y-axis
+		float radius = 10.0f;
+		float camX = sin(glfwGetTime()) * radius;
+		float camZ = cos(glfwGetTime()) * radius;
+		view = glm::lookAt(glm::vec3(camX,0,camZ), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,1.0f,0.0f));
 
 		// Create a camera-to-screen (projection) matrix with perspective projection
 		glm::mat4 projection = glm::mat4(1.0f);
