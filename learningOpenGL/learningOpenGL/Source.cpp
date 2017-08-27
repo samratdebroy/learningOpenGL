@@ -10,8 +10,8 @@
 #include <glm/gtc/type_ptr.hpp>
 
 // Prototype
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 // Window dimensions
@@ -23,6 +23,7 @@ glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 float lastX = 400, lastY = 300; // start at center of screen
 float yaw = 0.0f, pitch = 0.0f;
+float fov = 45.0f; // field of view in degrees
 bool firstMouse = true; // flag for first mouse movement
 
 // Timing Variables
@@ -56,6 +57,7 @@ int main()
 
 	// Set the callback functions for mouse movements
 	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
 
 	// Setting to true ensures we use more modern techniques for OpenGL funcationality
 	glewExperimental = GL_TRUE;
@@ -243,7 +245,7 @@ int main()
 
 		// Create a camera-to-screen (projection) matrix with perspective projection
 		glm::mat4 projection = glm::mat4(1.0f);
-		projection = glm::perspective(glm::radians(45.0f), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
+		projection = glm::perspective(glm::radians(fov), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
 
 		// Making sure to activate the Shader
 		ourShader.Use(); 
@@ -338,5 +340,15 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	front.y = sin(glm::radians(pitch));
 	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
 	cameraFront = glm::normalize(front);
+}
+
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+{
+	if (fov >= 1.0f && fov <= 45.0f)
+		fov -= yoffset;
+	if (fov <= 1.0f)
+		fov = 1.0f;
+	if (fov >= 45.0f)
+		fov = 45.0f;
 }
 
