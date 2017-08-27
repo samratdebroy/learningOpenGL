@@ -11,6 +11,7 @@
 
 // Prototype
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void processInput(GLFWwindow *window);
 
 // Window dimensions
@@ -20,6 +21,9 @@ const GLuint WIDTH = 800, HEIGHT = 600;
 glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+float lastX = 400, lastY = 300; // start at center of screen
+float yaw = 0.0f, pitch = 0.0f;
+bool firstMouse = true; // flag for first mouse movement
 
 // Timing Variables
 float deltaTime = 0.0f; // Time b/w last frame and current frame
@@ -48,9 +52,10 @@ int main()
 		return -1;
 	}
 	glfwMakeContextCurrent(window); // create the context
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide the cursor when window is in view
 
-	// Set the callback functions for keyboard presses
-	glfwSetKeyCallback(window, key_callback);
+	// Set the callback functions for mouse movements
+	glfwSetCursorPosCallback(window, mouse_callback);
 
 	// Setting to true ensures we use more modern techniques for OpenGL funcationality
 	glewExperimental = GL_TRUE;
@@ -297,15 +302,41 @@ void processInput(GLFWwindow *window)
 		cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
 }
 
-/**
- * Whenever a user pressed a key, GLFW calls this function and fills in the proper arguments for you to process.
- * @param key specifies which key was pressed
- * @param action specifies an action (ex: if press or release of key)
- * @param mode specifies is superkeys like alt, shift or control have been pressed
- */
-void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
-	// When a user presses the escape key, we set the WindowShouldClose property to true, 
-	// closing the application
-	
+	if(firstMouse)
+	{
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+
+	// Calculate offsets
+	float xoffset = xpos - lastX;
+	float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
+	lastX = xpos;
+	lastY = ypos;
+
+	// Adjust for sensitivity 
+	float sensitivity = 0.05f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	// offset the pitch and yaw
+	yaw += xoffset;
+	pitch += yoffset;
+
+	// limit pitch
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	// Turn the camera's front-facing direction vector
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront = glm::normalize(front);
 }
+
