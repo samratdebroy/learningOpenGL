@@ -6,6 +6,8 @@
 //OTHERS
 #include "stb_image.h"
 #include "Shader.h"
+#include "Camera.h"
+
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
@@ -15,15 +17,11 @@ void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 
 // Window dimensions
-const GLuint WIDTH = 800, HEIGHT = 600;
+const GLuint SCR_WIDTH = 800, SCR_HEIGHT = 600;
 
 // Camera Settings
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
-float lastX = 400, lastY = 300; // start at center of screen
-float yaw = 0.0f, pitch = 0.0f;
-float fov = 45.0f; // field of view in degrees
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f)); // Camera with starting position
+float lastX = SCR_WIDTH/2.0f, lastY = SCR_HEIGHT/2.0f; // start at center of screen
 bool firstMouse = true; // flag for first mouse movement
 
 // Timing Variables
@@ -33,18 +31,16 @@ float lastFrame = 0.0f;
 int main()
 {
 	glfwInit(); //initialize GLFW
-	// Specify you will be using OpenGL 4.4
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);	// Specify you will be using OpenGL 4.4
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
 	// Specify you only want to use core OpenGL and throw error at legacy function use
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	// specify user should not be able to resize window
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
+	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE); // TODO: Change this to make screen size changeable
 
 	/// CREATE A WINDOW
 	// Create window of 800x600 pixels titled LearnOpenGL
-	GLFWwindow* window = glfwCreateWindow(WIDTH, HEIGHT, "LearnOpenGL", nullptr, nullptr);
-
+	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", nullptr, nullptr);
 	// If window wasn't properly created, then terminate
 	if (window == nullptr)
 	{
@@ -239,20 +235,16 @@ int main()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, texture2);
 
+		// Making sure to activate the Shader
+		ourShader.Use();
+
 		// Create a world-to-camera (view) matrix using the camera position, target pos and world up-vector
-		glm::mat4 view = glm::mat4(1.0f);
-		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		glm::mat4 view = camera.GetViewMatrix();
+		ourShader.setMat4("view", view); // Set Uniform
 
 		// Create a camera-to-screen (projection) matrix with perspective projection
-		glm::mat4 projection = glm::mat4(1.0f);
-		projection = glm::perspective(glm::radians(fov), (float)WIDTH / (float)HEIGHT, 0.1f, 100.0f);
-
-		// Making sure to activate the Shader
-		ourShader.Use(); 
-		
-		// Add coordinate-system transformation uniforms
-		ourShader.setMat4("view", view);
-		ourShader.setMat4("projection", projection); // projection matrix actually rarely changes, can only set once outside loop
+		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		ourShader.setMat4("projection", projection); // projection matrix actually rarely changes, can only set only once outside loop
 
 		glBindVertexArray(VAO);
 
@@ -295,13 +287,13 @@ void processInput(GLFWwindow *window)
 	// Camera movement keys
 	float cameraSpeed = 2.5 * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-		cameraPos += cameraSpeed * cameraFront;
+		camera.ProcessKeyboard(FORWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-		cameraPos -= cameraSpeed * cameraFront;
+		camera.ProcessKeyboard(BACKWARD, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-		cameraPos -= cameraSpeed * glm::normalize(glm::cross(cameraFront,cameraUp)); // cross product creates right vector
+		camera.ProcessKeyboard(LEFT, deltaTime);
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-		cameraPos += cameraSpeed * glm::normalize(glm::cross(cameraFront, cameraUp));
+		camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
 void mouse_callback(GLFWwindow* window, double xpos, double ypos)
@@ -316,39 +308,15 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 	// Calculate offsets
 	float xoffset = xpos - lastX;
 	float yoffset = lastY - ypos; // reversed since y-coordinates range from bottom to top
+
 	lastX = xpos;
 	lastY = ypos;
 
-	// Adjust for sensitivity 
-	float sensitivity = 0.05f;
-	xoffset *= sensitivity;
-	yoffset *= sensitivity;
-
-	// offset the pitch and yaw
-	yaw += xoffset;
-	pitch += yoffset;
-
-	// limit pitch
-	if (pitch > 89.0f)
-		pitch = 89.0f;
-	if (pitch < -89.0f)
-		pitch = -89.0f;
-
-	// Turn the camera's front-facing direction vector
-	glm::vec3 front;
-	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
-	front.y = sin(glm::radians(pitch));
-	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
-	cameraFront = glm::normalize(front);
+	camera.ProcessMouseMovement(xoffset, yoffset);
 }
 
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
-	if (fov >= 1.0f && fov <= 45.0f)
-		fov -= yoffset;
-	if (fov <= 1.0f)
-		fov = 1.0f;
-	if (fov >= 45.0f)
-		fov = 45.0f;
+	camera.ProcessMouseScroll(yoffset);
 }
 
