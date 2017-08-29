@@ -213,6 +213,7 @@ int main()
 		containerShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
 		containerShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
 		containerShader.setVec3("lightPos", lightPos);
+		containerShader.setVec3("viewPos", camera.Position);
 		containerShader.setMat4("view", view); // Set Uniform	
 		containerShader.setMat4("projection", projection); // projection matrix actually rarely changes, can only set only once outside loop
 		glBindVertexArray(VAO);

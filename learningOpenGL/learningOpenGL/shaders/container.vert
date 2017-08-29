@@ -13,7 +13,7 @@ out vec3 Normal;
 void main()
 {
 	FragPos = vec3(model * vec4(aPos,1.0)); // Retrieve the world position of the fragment
-	Normal = aNormal;
+	Normal = mat3(transpose(inverse(model))) * aNormal; // this ensures that uneven scaling won't distort the normal vector, but is costly to do on shader.
 
 	gl_Position = projection * view * vec4(FragPos,1.0);
 
