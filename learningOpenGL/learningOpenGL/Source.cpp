@@ -28,6 +28,10 @@ bool firstMouse = true; // flag for first mouse movement
 float deltaTime = 0.0f; // Time b/w last frame and current frame
 float lastFrame = 0.0f; 
 
+// Lighting Variable
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
+
 int main()
 {
 	glfwInit(); //initialize GLFW
@@ -75,52 +79,53 @@ int main()
 	glEnable(GL_DEPTH_TEST); // enable the z-buffer and depth testing
 
 	// Build and Compile our shader program
-	Shader ourShader("shaders/default.vert", "shaders/default.frag");
+	Shader containerShader("shaders/container.vert", "shaders/container.frag");
+	Shader lampShader("shaders/light.vert", "shaders/light.frag");
 
-	// CREATE RECTANGLE AND RENDER
-	// Create a rectangle with normalized (-1 to 1) vertex values
+	// CREATE CUBE AND RENDER
+	// Create a cube with normalized (-1 to 1) vertex values
 	float vertices[] = {
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
 
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
+		-0.5f, -0.5f,  0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
 
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
 
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
 
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, 1.0f,
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,
 
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f, 1.0f
+		-0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
 	};
 
 	// World-Space locations of 10 cubes
@@ -153,65 +158,18 @@ int main()
 
 	//Position attribute
 	// First vertex position / size of vertex / type of vertex components / if you want to normalize / stride=space b/w vertices/ offset of first component of attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0); // enables the vertex position attribute
-	// Texture attribute
-	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1); // enables the vertex texture attribute
 
-	//////////////////// TEXTURES //////////////////
-
-	// Load and Create the Texture IDs
-	// ------------------- texture 1
-	unsigned int texture1, texture2;
-	glGenTextures(1, &texture1);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-	// set the texture wrapping/filtering options (on the currently bound texture object)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // texture repeated on s & t axes
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // linear filtering when minifying
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // or when magnifying
-	// Import the texture from a file
-	int tex_width, tex_height, nrChannels;
-	stbi_set_flip_vertically_on_load(true); // vertically flip the image so that it is properly aligned
-	unsigned char *data = stbi_load("textures/container.jpg", &tex_width, &tex_height, &nrChannels, 0); // load from file
-	if(data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_width, tex_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data); // Gen the texture
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data); // Free image memory
-
-	// ------------------- texture 2
-	glGenTextures(1, &texture2);
-	glBindTexture(GL_TEXTURE_2D, texture2);
-	// set the texture wrapping/filtering options (on the currently bound texture object)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT); // texture repeated on s & t axes
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR); // linear filtering when minifying
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR); // or when magnifying
-	// Import the texture from a file
-	data = stbi_load("textures/awesomeface.png", &tex_width, &tex_height, &nrChannels, 0); // load from file
-	if (data)
-	{
-		// note that the awesomeface.png has transparency and thus an alpha channel, so make sure to tell OpenGL the data type is of GL_RGBA
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, tex_width, tex_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data); // Gen the texture
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture 2 " << std::endl;
-	}
-	stbi_image_free(data); // Free image memory
-
-	// tell opengl for each sampler to which texture unit it belongs to (only has to be done once)
-	ourShader.Use(); // remember to activate/use the shader before setting uniforms
-	ourShader.setInt("texture1", 0);
-	ourShader.setInt("texture2", 1);
+	// Create VAO for light source (lamp)
+	GLuint lightVAO;
+	glGenVertexArrays(1, &lightVAO);
+	glBindVertexArray(lightVAO);
+	// we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GL_FLOAT), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	
 
 	// Loop that will run every frame until something causes termination
 	while(!glfwWindowShouldClose(window))
@@ -226,37 +184,44 @@ int main()
 
 		// Rendering Commands go here
 		// Clear Colorbuffer  and set background colour to clear to
-		glClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer
-
-		// Bind textures on corresponding texture units
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture1);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, texture2);
-
-		// Making sure to activate the Shader
-		ourShader.Use();
 
 		// Create a world-to-camera (view) matrix using the camera position, target pos and world up-vector
 		glm::mat4 view = camera.GetViewMatrix();
-		ourShader.setMat4("view", view); // Set Uniform
-
 		// Create a camera-to-screen (projection) matrix with perspective projection
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-		ourShader.setMat4("projection", projection); // projection matrix actually rarely changes, can only set only once outside loop
 
+		// Create the lamp
+		lampShader.Use();
+		glm::mat4 model = glm::mat4(1.0f);
+		model = glm::translate(model, lightPos); // place at world position
+		model = glm::scale(model, glm::vec3(0.2f)); // scale down the lamp
+		lampShader.setMat4("model", model); // set light uniforms
+		lampShader.setMat4("view", view);
+		lampShader.setMat4("projection", projection);
+
+		// Draw lamp object
+		glBindVertexArray(lightVAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+
+		// Set up Container Shader
+		containerShader.Use();
+		containerShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+		containerShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		containerShader.setMat4("view", view); // Set Uniform	
+		containerShader.setMat4("projection", projection); // projection matrix actually rarely changes, can only set only once outside loop
 		glBindVertexArray(VAO);
 
 		// Create ten translated cubes
 		for(unsigned int i =0; i < 10; i++)
 		{
 			// Create a local-to-world (model) matrix
-			glm::mat4 model = glm::mat4(1.0f);//init as identity matrix
+			model = glm::mat4(1.0f);//init as identity matrix
 			model = glm::translate(model, cubePositions[i]); 
 			float angle = 10.0f + 20.0f * i; //add a slight rotation to each cube
 			model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f)); //rotate with time	
-			ourShader.setMat4("model", model); // Set the model uniform
+			containerShader.setMat4("model", model); // Set the model uniform
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
@@ -269,6 +234,7 @@ int main()
 	}
 	// Properly de-allocate all resources once they've outlived their purpose
 	glDeleteVertexArrays(1, &VAO);
+	glDeleteVertexArrays(1, &lightVAO);
 	glDeleteBuffers(1, &VBO);
 
 	// Terminate GLFW and clear any resources allocated by it
