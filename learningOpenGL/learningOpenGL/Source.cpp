@@ -1,20 +1,20 @@
-//GLEW must be defined before GLFW
-#define GLEW_STATIC
-#include <GL/glew.h>
+#include <glad/glad.h>
 //GLFW
 #include <GLFW/glfw3.h>
 //OTHERS
 #include "stb_image.h"
+
 #include "Shader.h"
 #include "Camera.h"
+#include "Model.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
 // Prototype
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
-unsigned int loadTexture(char const * path);
 void processInput(GLFWwindow *window);
 
 // Window dimensions
@@ -34,15 +34,10 @@ int main()
 	glfwInit(); //initialize GLFW
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);	// Specify you will be using OpenGL 4.4
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
-	// Specify you only want to use core OpenGL and throw error at legacy function use
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	// specify user should not be able to resize window
-	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE); // TODO: Change this to make screen size changeable
 
 	/// CREATE A WINDOW
-	// Create window of 800x600 pixels titled LearnOpenGL
 	GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", nullptr, nullptr);
-	// If window wasn't properly created, then terminate
 	if (window == nullptr)
 	{
 		std::cout << "Failed to create GLFW window" << std::endl;
@@ -52,151 +47,31 @@ int main()
 	glfwMakeContextCurrent(window); // create the context
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED); // Hide the cursor when window is in view
 
-	// Set the callback functions for mouse movements
+	// Set the callback functions for mouse movements and frame size change
 	glfwSetCursorPosCallback(window, mouse_callback);
 	glfwSetScrollCallback(window, scroll_callback);
+	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
-	// Setting to true ensures we use more modern techniques for OpenGL funcationality
-	glewExperimental = GL_TRUE;
-	// Check if you properly initialized GLEW
-	if(glewInit() != GLEW_OK)
+	// glad: load all OpenGL function pointers
+	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
 	{
-		std::cout << "Failed to initialize GLEW" << std::endl;
+		std::cout << "Failed to initialize GLAD" << std::endl;
 		return -1;
 	}
-
-	// Get the width and height of the window defined before
-	int width, height;
-	glfwGetFramebufferSize(window, &width, &height);
-
-	// Set origin to lower-left corner of window and define size.
-	glViewport(0, 0, width, height);
 
 	// Config global opengl state
 	glEnable(GL_DEPTH_TEST); // enable the z-buffer and depth testing
 
 	// Build and Compile our shader program
-	Shader containerShader("shaders/container.vert", "shaders/container.frag");
-	Shader lampShader("shaders/light.vert", "shaders/light.frag");
+	Shader ourShader("shaders/model_loading.vert", "shaders/model_loading.frag");
 
-	// CREATE CUBE AND RENDER
-	// Create a cube with normalized (-1 to 1) vertex values
-	float vertices[] = {
-		// positions          // normals           // texture coords
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-		0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  1.0f, 1.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,  0.0f, 0.0f,
-
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   1.0f, 1.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f,  0.0f, 1.0f,   0.0f, 0.0f,
-
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-		-0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-		-0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-		0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  0.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,  1.0f, 0.0f,
-
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-		0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 1.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-		0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  1.0f, 0.0f,
-		-0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 0.0f,
-		-0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,  0.0f, 1.0f,
-
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f,
-		0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 1.0f,
-		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-		0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f, 0.0f,
-		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 0.0f,
-		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f, 1.0f
-	};
-
-	// World-Space locations of 10 cubes
-	glm::vec3 cubePositions[] = {
-		glm::vec3(0.0f,  0.0f,  0.0f),
-		glm::vec3(2.0f,  5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f),
-		glm::vec3(-3.8f, -2.0f, -12.3f),
-		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f,  3.0f, -7.5f),
-		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f,  2.0f, -2.5f),
-		glm::vec3(1.5f,  0.2f, -1.5f),
-		glm::vec3(-1.3f,  1.0f, -1.5f)
-	};
-
-	// World-Space locations of 4 lamps
-	glm::vec3 pointLightPositions[] = {
-		glm::vec3(0.7f,  0.2f,  2.0f),
-		glm::vec3(2.3f, -3.3f, -4.0f),
-		glm::vec3(-4.0f,  2.0f, -12.0f),
-		glm::vec3(0.0f,  0.0f, -3.0f)
-	};
-
-	// create vertex buffer objects,vertex array objects
-	GLuint VBO, VAO;
-	glGenVertexArrays(1, &VAO);
-	glGenBuffers(1, &VBO);
-
-	/// Bind the Vertex Array Object first, then bind and set vertex buffer(s) and attribute pointer(s).
-	glBindVertexArray(VAO);
-
-	/// Bind VBO (copy vertices array into VBO)
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	//////// Set vertice attributes ///////////
-
-	// Position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
-	glEnableVertexAttribArray(0); // enables the vertex position attribute
-
-	// Normal attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1); // enables the vertex position attribute
-
-	// Texture attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2); // enables the vertex position attribute
-
-	////// Add Textures ///////
-	unsigned int diffuseMap = loadTexture("textures/container2.png");
-	unsigned int specularMap = loadTexture("textures/container2_specular.png");
-
-	// Create VAO for light source (lamp)
-	GLuint lightVAO;
-	glGenVertexArrays(1, &lightVAO);
-	glBindVertexArray(lightVAO);
-	// we only need to bind to the VBO (to link it with glVertexAttribPointer), no need to fill it; the VBO's data already contains all we need (it's already bound, but we do it again for educational purposes)
-	glBindBuffer(GL_ARRAY_BUFFER, VBO);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GL_FLOAT), (GLvoid*)0);
-	glEnableVertexAttribArray(0);
-	
-	// shader configuration
-	// --------------------
-	containerShader.Use();
-	containerShader.setInt("material.diffuse", 0);
-	containerShader.setInt("material.specular", 1);
+	// Load models
+	Model ourModel("models/nanosuit.obj");
 
 	// Loop that will run every frame until something causes termination
 	while(!glfwWindowShouldClose(window))
 	{
-		// Time logic
+		// per-frame Time logic
 		float currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
 		lastFrame = currentFrame;
@@ -204,118 +79,32 @@ int main()
 		// Handle inputs
 		processInput(window);
 
-		// Rendering Commands go here
-		// Clear Colorbuffer  and set background colour to clear to
+		// Render
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // also clear the depth buffer
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear Colorbuffer and clear the depth buffer
+
+		// enable the shader before setting uniforms
+		ourShader.Use();
 
 		// Create a world-to-camera (view) matrix using the camera position, target pos and world up-vector
 		glm::mat4 view = camera.GetViewMatrix();
 		// Create a camera-to-screen (projection) matrix with perspective projection
 		glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+		ourShader.setMat4("view", view);
+		ourShader.setMat4("projection", projection);
 
-		// Create the lamp
-		lampShader.Use();
-		lampShader.setMat4("view", view);
-		lampShader.setMat4("projection", projection);
-		glBindVertexArray(lightVAO);
-		for(int i = 0 ; i < 4 ; i++)
-		{
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, pointLightPositions[i]); // place at world position
-			model = glm::scale(model, glm::vec3(0.2f)); // scale down the lamp
-			lampShader.setMat4("model", model); // set light uniforms
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
-
-		// Set up Container Shader 
-		containerShader.Use();
-		// Directional Light
-		containerShader.setVec3("DirLight.direction", -0.2f, -1.0f, -0.3f);
-		containerShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
-		containerShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
-		containerShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
-		// point light 1
-		containerShader.setVec3("pointLights[0].position", pointLightPositions[0]);
-		containerShader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
-		containerShader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
-		containerShader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
-		containerShader.setFloat("pointLights[0].constant", 1.0f);
-		containerShader.setFloat("pointLights[0].linear", 0.09);
-		containerShader.setFloat("pointLights[0].quadratic", 0.032);
-		// point light 2
-		containerShader.setVec3("pointLights[1].position", pointLightPositions[1]);
-		containerShader.setVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
-		containerShader.setVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
-		containerShader.setVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
-		containerShader.setFloat("pointLights[1].constant", 1.0f);
-		containerShader.setFloat("pointLights[1].linear", 0.09);
-		containerShader.setFloat("pointLights[1].quadratic", 0.032);
-		// point light 3
-		containerShader.setVec3("pointLights[2].position", pointLightPositions[2]);
-		containerShader.setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
-		containerShader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
-		containerShader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
-		containerShader.setFloat("pointLights[2].constant", 1.0f);
-		containerShader.setFloat("pointLights[2].linear", 0.09);
-		containerShader.setFloat("pointLights[2].quadratic", 0.032);
-		// point light 4
-		containerShader.setVec3("pointLights[3].position", pointLightPositions[3]);
-		containerShader.setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
-		containerShader.setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
-		containerShader.setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
-		containerShader.setFloat("pointLights[3].constant", 1.0f);
-		containerShader.setFloat("pointLights[3].linear", 0.09);
-		containerShader.setFloat("pointLights[3].quadratic", 0.032);
-		// spotLight
-		containerShader.setVec3("spotLight.position", camera.Position);
-		containerShader.setVec3("spotLight.direction", camera.Front);
-		containerShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
-		containerShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
-		containerShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
-		containerShader.setFloat("spotLight.constant", 1.0f);
-		containerShader.setFloat("spotLight.linear", 0.09);
-		containerShader.setFloat("spotLight.quadratic", 0.032);
-		containerShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
-		containerShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
-
-		containerShader.setVec3("viewPos", camera.Position);
-		containerShader.setMat4("view", view); // Set Uniform	
-		containerShader.setMat4("projection", projection); // projection matrix actually rarely changes, can only set only once outside loop
-		
-		// Set container Material and Light intensity
-		containerShader.setFloat("material.shininess", 32.0f);
-
-		// Texture
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, diffuseMap);
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, specularMap);
-
-		glBindVertexArray(VAO);
-		// Create ten translated cubes
-		for(unsigned int i =0; i < 10; i++)
-		{
-			// Create a local-to-world (model) matrix
-			glm::mat4 model = glm::mat4(1.0f);//init as identity matrix
-			model = glm::translate(model, cubePositions[i]); 
-			float angle = 10.0f + 20.0f * i; //add a slight rotation to each cube
-			model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f)); //rotate with time	
-			containerShader.setMat4("model", model); // Set the model uniform
-
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-		}
-
+		// Render the laoded model
+		glm::mat4 model(1.0f);
+		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
+		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f)); // it's a bit too big for the scene, so scale down
+		ourShader.setMat4("model", model);
+		ourModel.Draw(ourShader);
 
 		// Will swap the pointers to the double buffers
 		// Checks if any I/O events have been triggered (eg. mouse or keyboard click)
 		glfwSwapBuffers(window);
 		glfwPollEvents();
 	}
-	// Properly de-allocate all resources once they've outlived their purpose
-	glDeleteVertexArrays(1, &VAO);
-	glDeleteVertexArrays(1, &lightVAO);
-	glDeleteBuffers(1, &VBO);
 
 	// Terminate GLFW and clear any resources allocated by it
 	glfwTerminate();
@@ -404,4 +193,11 @@ unsigned int loadTexture(char const * path)
 	}
 
 	return textureID;
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{    
+	// make sure the viewport matches the new window dimensions; note that width and 
+	 // height will be significantly larger than specified on retina displays.
+	glViewport(0, 0, width, height);
 }

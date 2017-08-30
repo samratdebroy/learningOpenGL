@@ -2,11 +2,11 @@
 #define SHADER_H
 
 #include<string>
+#include<glad/glad.h>
 #include <fstream>
 #include  <sstream>
 #include  <iostream>
 
-#include <GL/glew.h>; // Include glew to get all the required OpenGL headers
 #include <glm/glm.hpp>
 
 

@@ -21,6 +21,9 @@
     <ClCompile Include="stb_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\..\Google Drive\Programming Mania\OpenGLLibraries\glad\src\glad.c">
+      <Filter>Resource Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="shaders\default.vert">
@@ -40,6 +43,12 @@
     <ClInclude Include="Camera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Mesh.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Model.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\container.vert">
@@ -52,6 +61,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="shaders\light.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\model_loading.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\model_loading.frag">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
