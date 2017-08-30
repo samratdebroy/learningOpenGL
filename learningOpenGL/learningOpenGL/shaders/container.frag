@@ -19,9 +19,6 @@ struct Light {
 
 uniform Light light;
 uniform Material material;
-uniform vec3 objectColor;
-uniform vec3 lightColor;
-uniform vec3 lightPos;
 uniform vec3 viewPos;
 
 in vec3 FragPos;
@@ -34,7 +31,7 @@ void main()
 
 	// Diffuse
 	vec3 norm = normalize(Normal);
-	vec3 lightDir = normalize(lightPos - FragPos); // direction vector b/w lightsource and obj
+	vec3 lightDir = normalize(light.position - FragPos); // direction vector b/w lightsource and obj
 	float diff = max(dot(norm,lightDir), 0.0);
 	vec3 diffuse = light.diffuse * (diff * material.diffuse);
 
@@ -44,6 +41,6 @@ void main()
 	float spec = pow(max(dot(viewDir,reflectDir), 0.0), material.shininess); // power reps. the shinniness of the surface (amount it reflects)
 	vec3 specular = light.specular * (spec * material.specular);
 
-	vec3 result = (ambient + diffuse + specular) * objectColor;
+	vec3 result = ambient + diffuse + specular;
 	FragColor = vec4(result, 1.0);
 }

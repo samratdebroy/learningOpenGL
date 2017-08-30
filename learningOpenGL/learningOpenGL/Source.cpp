@@ -208,11 +208,18 @@ int main()
 		glBindVertexArray(lightVAO);
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 
+		// Change light color over time
+		glm::vec3 lightColor;
+		lightColor.x = sin(glfwGetTime() * 2.0f);
+		lightColor.y = sin(glfwGetTime() * 0.7f);
+		lightColor.z = sin(glfwGetTime() * 1.3f);
+
+		glm::vec3 diffuseColor = lightColor * glm::vec3(0.5f); // Decrease the influence
+		glm::vec3 ambientColor = diffuseColor * glm::vec3(0.2f); // low influence
+
 		// Set up Container Shader
 		containerShader.Use();
-		containerShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-		containerShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-		containerShader.setVec3("lightPos", lightPos);
+		containerShader.setVec3("light.position", lightPos);
 		containerShader.setVec3("viewPos", camera.Position);
 		containerShader.setMat4("view", view); // Set Uniform	
 		containerShader.setMat4("projection", projection); // projection matrix actually rarely changes, can only set only once outside loop
@@ -222,8 +229,8 @@ int main()
 		containerShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
 		containerShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
 		containerShader.setFloat("material.shininess", 32.0f);
-		containerShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-		containerShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darken the light a bit to fit the scene
+		containerShader.setVec3("light.ambient", ambientColor);
+		containerShader.setVec3("light.diffuse", diffuseColor); // darken the light a bit to fit the scene
 		containerShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
 
 		glBindVertexArray(VAO);
