@@ -225,7 +225,7 @@ int main()
 
 		// Set up Container Shader
 		containerShader.Use();
-		containerShader.setVec3("light.direction", -0.2f, -1.0f, -0.3f);
+		containerShader.setVec3("light.position", lightPos);
 		containerShader.setVec3("viewPos", camera.Position);
 		containerShader.setMat4("view", view); // Set Uniform	
 		containerShader.setMat4("projection", projection); // projection matrix actually rarely changes, can only set only once outside loop
@@ -235,6 +235,9 @@ int main()
 		containerShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
 		containerShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darken the light a bit to fit the scene
 		containerShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+		containerShader.setFloat("light.constant", 1.0f);
+		containerShader.setFloat("light.linear", 0.09f);
+		containerShader.setFloat("light.quadratic", 0.032f);
 
 		// Texture
 		glActiveTexture(GL_TEXTURE0);
