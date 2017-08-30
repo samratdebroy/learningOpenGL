@@ -217,11 +217,15 @@ int main()
 		containerShader.setMat4("view", view); // Set Uniform	
 		containerShader.setMat4("projection", projection); // projection matrix actually rarely changes, can only set only once outside loop
 		
-		// Set container Material
+		// Set container Material and Light intensity
 		containerShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
 		containerShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
 		containerShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
 		containerShader.setFloat("material.shininess", 32.0f);
+		containerShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
+		containerShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darken the light a bit to fit the scene
+		containerShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+
 		glBindVertexArray(VAO);
 
 		// Create ten translated cubes
