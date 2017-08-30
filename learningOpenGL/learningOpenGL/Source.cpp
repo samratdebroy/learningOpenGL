@@ -172,6 +172,7 @@ int main()
 
 	////// Add Textures ///////
 	unsigned int diffuseMap = loadTexture("textures/container2.png");
+	unsigned int specularMap = loadTexture("textures/container2_specular.png");
 
 	// Create VAO for light source (lamp)
 	GLuint lightVAO;
@@ -186,6 +187,7 @@ int main()
 	// --------------------
 	containerShader.Use();
 	containerShader.setInt("material.diffuse", 0);
+	containerShader.setInt("material.specular", 1);
 
 	// Loop that will run every frame until something causes termination
 	while(!glfwWindowShouldClose(window))
@@ -229,7 +231,6 @@ int main()
 		containerShader.setMat4("projection", projection); // projection matrix actually rarely changes, can only set only once outside loop
 		
 		// Set container Material and Light intensity
-		containerShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
 		containerShader.setFloat("material.shininess", 32.0f);
 		containerShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
 		containerShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darken the light a bit to fit the scene
@@ -238,6 +239,8 @@ int main()
 		// Texture
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, diffuseMap);
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, specularMap);
 
 		glBindVertexArray(VAO);
 		// Create ten translated cubes
