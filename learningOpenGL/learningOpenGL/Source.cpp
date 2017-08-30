@@ -29,10 +29,6 @@ bool firstMouse = true; // flag for first mouse movement
 float deltaTime = 0.0f; // Time b/w last frame and current frame
 float lastFrame = 0.0f; 
 
-// Lighting Variable
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-
-
 int main()
 {
 	glfwInit(); //initialize GLFW
@@ -144,6 +140,14 @@ int main()
 		glm::vec3(-1.3f,  1.0f, -1.5f)
 	};
 
+	// World-Space locations of 4 lamps
+	glm::vec3 pointLightPositions[] = {
+		glm::vec3(0.7f,  0.2f,  2.0f),
+		glm::vec3(2.3f, -3.3f, -4.0f),
+		glm::vec3(-4.0f,  2.0f, -12.0f),
+		glm::vec3(0.0f,  0.0f, -3.0f)
+	};
+
 	// create vertex buffer objects,vertex array objects
 	GLuint VBO, VAO;
 	glGenVertexArrays(1, &VAO);
@@ -212,35 +216,75 @@ int main()
 
 		// Create the lamp
 		lampShader.Use();
-		glm::mat4 model = glm::mat4(1.0f);
-		model = glm::translate(model, lightPos); // place at world position
-		model = glm::scale(model, glm::vec3(0.2f)); // scale down the lamp
-		lampShader.setMat4("model", model); // set light uniforms
 		lampShader.setMat4("view", view);
 		lampShader.setMat4("projection", projection);
-
-		// Draw lamp object
 		glBindVertexArray(lightVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 36);
+		for(int i = 0 ; i < 4 ; i++)
+		{
+			glm::mat4 model = glm::mat4(1.0f);
+			model = glm::translate(model, pointLightPositions[i]); // place at world position
+			model = glm::scale(model, glm::vec3(0.2f)); // scale down the lamp
+			lampShader.setMat4("model", model); // set light uniforms
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+		}
 
-		// Set up Container Shader
+		// Set up Container Shader 
 		containerShader.Use();
-		containerShader.setVec3("light.position", camera.Position);
-		containerShader.setVec3("light.direction", camera.Front); // Flashlight light
-		containerShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
-		containerShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
+		// Directional Light
+		containerShader.setVec3("DirLight.direction", -0.2f, -1.0f, -0.3f);
+		containerShader.setVec3("dirLight.ambient", 0.05f, 0.05f, 0.05f);
+		containerShader.setVec3("dirLight.diffuse", 0.4f, 0.4f, 0.4f);
+		containerShader.setVec3("dirLight.specular", 0.5f, 0.5f, 0.5f);
+		// point light 1
+		containerShader.setVec3("pointLights[0].position", pointLightPositions[0]);
+		containerShader.setVec3("pointLights[0].ambient", 0.05f, 0.05f, 0.05f);
+		containerShader.setVec3("pointLights[0].diffuse", 0.8f, 0.8f, 0.8f);
+		containerShader.setVec3("pointLights[0].specular", 1.0f, 1.0f, 1.0f);
+		containerShader.setFloat("pointLights[0].constant", 1.0f);
+		containerShader.setFloat("pointLights[0].linear", 0.09);
+		containerShader.setFloat("pointLights[0].quadratic", 0.032);
+		// point light 2
+		containerShader.setVec3("pointLights[1].position", pointLightPositions[1]);
+		containerShader.setVec3("pointLights[1].ambient", 0.05f, 0.05f, 0.05f);
+		containerShader.setVec3("pointLights[1].diffuse", 0.8f, 0.8f, 0.8f);
+		containerShader.setVec3("pointLights[1].specular", 1.0f, 1.0f, 1.0f);
+		containerShader.setFloat("pointLights[1].constant", 1.0f);
+		containerShader.setFloat("pointLights[1].linear", 0.09);
+		containerShader.setFloat("pointLights[1].quadratic", 0.032);
+		// point light 3
+		containerShader.setVec3("pointLights[2].position", pointLightPositions[2]);
+		containerShader.setVec3("pointLights[2].ambient", 0.05f, 0.05f, 0.05f);
+		containerShader.setVec3("pointLights[2].diffuse", 0.8f, 0.8f, 0.8f);
+		containerShader.setVec3("pointLights[2].specular", 1.0f, 1.0f, 1.0f);
+		containerShader.setFloat("pointLights[2].constant", 1.0f);
+		containerShader.setFloat("pointLights[2].linear", 0.09);
+		containerShader.setFloat("pointLights[2].quadratic", 0.032);
+		// point light 4
+		containerShader.setVec3("pointLights[3].position", pointLightPositions[3]);
+		containerShader.setVec3("pointLights[3].ambient", 0.05f, 0.05f, 0.05f);
+		containerShader.setVec3("pointLights[3].diffuse", 0.8f, 0.8f, 0.8f);
+		containerShader.setVec3("pointLights[3].specular", 1.0f, 1.0f, 1.0f);
+		containerShader.setFloat("pointLights[3].constant", 1.0f);
+		containerShader.setFloat("pointLights[3].linear", 0.09);
+		containerShader.setFloat("pointLights[3].quadratic", 0.032);
+		// spotLight
+		containerShader.setVec3("spotLight.position", camera.Position);
+		containerShader.setVec3("spotLight.direction", camera.Front);
+		containerShader.setVec3("spotLight.ambient", 0.0f, 0.0f, 0.0f);
+		containerShader.setVec3("spotLight.diffuse", 1.0f, 1.0f, 1.0f);
+		containerShader.setVec3("spotLight.specular", 1.0f, 1.0f, 1.0f);
+		containerShader.setFloat("spotLight.constant", 1.0f);
+		containerShader.setFloat("spotLight.linear", 0.09);
+		containerShader.setFloat("spotLight.quadratic", 0.032);
+		containerShader.setFloat("spotLight.cutOff", glm::cos(glm::radians(12.5f)));
+		containerShader.setFloat("spotLight.outerCutOff", glm::cos(glm::radians(15.0f)));
+
 		containerShader.setVec3("viewPos", camera.Position);
 		containerShader.setMat4("view", view); // Set Uniform	
 		containerShader.setMat4("projection", projection); // projection matrix actually rarely changes, can only set only once outside loop
 		
 		// Set container Material and Light intensity
 		containerShader.setFloat("material.shininess", 32.0f);
-		containerShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
-		containerShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f); // darken the light a bit to fit the scene
-		containerShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-		containerShader.setFloat("light.constant", 1.0f);
-		containerShader.setFloat("light.linear", 0.09f);
-		containerShader.setFloat("light.quadratic", 0.032f);
 
 		// Texture
 		glActiveTexture(GL_TEXTURE0);
@@ -253,7 +297,7 @@ int main()
 		for(unsigned int i =0; i < 10; i++)
 		{
 			// Create a local-to-world (model) matrix
-			model = glm::mat4(1.0f);//init as identity matrix
+			glm::mat4 model = glm::mat4(1.0f);//init as identity matrix
 			model = glm::translate(model, cubePositions[i]); 
 			float angle = 10.0f + 20.0f * i; //add a slight rotation to each cube
 			model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f)); //rotate with time	
