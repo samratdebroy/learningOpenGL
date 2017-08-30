@@ -225,7 +225,10 @@ int main()
 
 		// Set up Container Shader
 		containerShader.Use();
-		containerShader.setVec3("light.position", lightPos);
+		containerShader.setVec3("light.position", camera.Position);
+		containerShader.setVec3("light.direction", camera.Front); // Flashlight light
+		containerShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
+		containerShader.setFloat("light.outerCutOff", glm::cos(glm::radians(17.5f)));
 		containerShader.setVec3("viewPos", camera.Position);
 		containerShader.setMat4("view", view); // Set Uniform	
 		containerShader.setMat4("projection", projection); // projection matrix actually rarely changes, can only set only once outside loop
