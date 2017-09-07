@@ -75,5 +75,11 @@
     <None Include="shaders\skybox.vert">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="shaders\reflection.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\reflection.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

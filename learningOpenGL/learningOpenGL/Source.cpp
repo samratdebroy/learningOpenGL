@@ -66,14 +66,6 @@ int main()
 	// Config global opengl state
 	glEnable(GL_DEPTH_TEST); // enable the z-buffer and depth testing
 
-	 // World-Space locations of 4 lamps
-	glm::vec3 pointLightPositions[] = {
-		glm::vec3(0.7f,  0.2f,  2.0f),
-		glm::vec3(2.3f, -3.3f, -4.0f),
-		glm::vec3(-4.0f,  2.0f, -12.0f),
-		glm::vec3(0.0f,  0.0f, -3.0f)
-	};
-
 	float skyboxVertices[] = {
 		// positions          
 		-1.0f,  1.0f, -1.0f,
@@ -127,8 +119,7 @@ int main()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
 	// Build and Compile our shader program
-	Shader ourShader("shaders/model_loading.vert", "shaders/model_loading.frag");
-	Shader lampShader("shaders/light.vert", "shaders/light.frag");
+	Shader ourShader("shaders/reflection.vert", "shaders/reflection.frag");
 	Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
 
 	// Load models
@@ -149,6 +140,8 @@ int main()
 	// Set Skybox texture ID
 	skyboxShader.Use();
 	skyboxShader.setInt("skybox", 0);
+	ourShader.Use();
+	ourShader.setInt("skybox", 0);
 
 	// Loop that will run every frame until something causes termination
 	while(!glfwWindowShouldClose(window))
@@ -175,26 +168,13 @@ int main()
 		ourShader.setMat4("view", view);
 		ourShader.setMat4("projection", projection);
 
-		// Render the laoded model
+		// Render the loaded model
 		glm::mat4 model(1.0f);
 		model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
 		model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f)); // it's a bit too big for the scene, so scale down
 		ourShader.setMat4("model", model);
-		setShaderLightsUniforms(ourShader, pointLightPositions);
+		ourShader.setVec3("cameraPos", camera.Position);
 		ourModel.Draw(ourShader);
-
-		// Create the lamps
-		lampShader.Use();
-		lampShader.setMat4("view", view);
-		lampShader.setMat4("projection", projection);
-		for (int i = 0; i < 4; i++)
-		{
-			glm::mat4 model = glm::mat4(1.0f);
-			model = glm::translate(model, pointLightPositions[i]); // place at world position
-			model = glm::scale(model, glm::vec3(0.05f)); // scale down the lamp
-			lampShader.setMat4("model", model); // set light uniforms
-			ourModel.Draw(ourShader);
-		}
 
 		// Render the skybox at the end in the backgrounf
 		glDepthFunc(GL_LEQUAL); // draw skybox in background
