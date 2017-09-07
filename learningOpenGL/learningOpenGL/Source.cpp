@@ -119,7 +119,8 @@ int main()
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
 	// Build and Compile our shader program
-	Shader ourShader("shaders/reflection.vert", "shaders/reflection.frag");
+	//Shader ourShader("shaders/reflection.vert", "shaders/reflection.frag");
+	Shader ourShader("shaders/refraction.vert", "shaders/refraction.frag");
 	Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
 
 	// Load models

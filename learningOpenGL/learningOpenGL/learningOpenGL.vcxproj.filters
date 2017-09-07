@@ -81,5 +81,11 @@
     <None Include="shaders\reflection.frag">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="shaders\refraction.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\refraction.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
