@@ -124,6 +124,7 @@
     <ClCompile Include="..\..\..\..\Google Drive\Programming Mania\OpenGLLibraries\glad\src\glad.c" />
     <ClCompile Include="Source.cpp" />
     <ClCompile Include="stb_image.cpp" />
+    <ClCompile Include="Terrain.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="shaders\default.frag" />
@@ -135,6 +136,7 @@
     <ClInclude Include="Model.h" />
     <ClInclude Include="Shader.h" />
     <ClInclude Include="stb_image.h" />
+    <ClInclude Include="Terrain.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\container.frag" />

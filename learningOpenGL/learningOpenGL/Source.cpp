@@ -10,6 +10,7 @@
 
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include "Terrain.h"
 
 // Prototype
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -122,9 +123,11 @@ int main()
 	//Shader ourShader("shaders/reflection.vert", "shaders/reflection.frag");
 	Shader ourShader("shaders/refraction.vert", "shaders/refraction.frag");
 	Shader skyboxShader("shaders/skybox.vert", "shaders/skybox.frag");
+	Shader terrainShader("shaders/light.vert", "shaders/light.frag");
 
 	// Load models
 	Model ourModel("models/nanosuit.obj");
+	Terrain terrain(10, 10);
 
 	// Load Skybox
 	vector<std::string> faces =
@@ -176,6 +179,15 @@ int main()
 		ourShader.setMat4("model", model);
 		ourShader.setVec3("cameraPos", camera.Position);
 		ourModel.Draw(ourShader);
+
+		// Render Terrain
+		terrainShader.Use();
+		model = glm::mat4(1.0f);
+		model = glm::translate(model, glm::vec3(-5.0f, -1.75f, -5.0f));
+		terrainShader.setMat4("model", model);
+		terrainShader.setMat4("view", view);
+		terrainShader.setMat4("projection", projection);
+		terrain.Draw();
 
 		// Render the skybox at the end in the backgrounf
 		glDepthFunc(GL_LEQUAL); // draw skybox in background

@@ -51,6 +51,7 @@ public:
 	{
 		unsigned int diffuseNr = 1;
 		unsigned int specularNr = 1;
+		unsigned int ambientNr = 1;
 		for(unsigned int i = 0; i < textures.size(); i++)
 		{
 			glActiveTexture(GL_TEXTURE0 + i); // Activate proper texture before binding
@@ -62,6 +63,8 @@ public:
 				ss << diffuseNr++; // Transfer unsigned int to stream
 			else if (name == "texture_specular")
 				ss << specularNr++; // Transfer unsinged int to stream
+			else if (name == "texture_ambient")
+				ss << ambientNr++; // Transfer unsinged int to stream
 			number = ss.str();
 
 			// Set the material id uniform
